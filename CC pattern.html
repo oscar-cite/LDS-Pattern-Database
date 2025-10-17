@@ -1,0 +1,4384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CC and Task Patterns</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+	input {
+	  padding: 0.5rem;
+	  font-size: 1rem;
+	  border: none;
+	  border-radius: 4px;
+	}
+	header {
+	  background-color: #007bff;
+	  color: white;
+	  padding: 1rem 0;
+	  font-size: 1.5rem;
+	  display: flex;
+	  justify-content: space-between;
+	  align-items: center;
+	  padding-left: 1rem;
+	  padding-right: 1rem;
+	}
+    .layout {
+      display: flex;
+      height: calc(100vh - 70px); /* Subtract header height */
+    }
+    .sidebar {
+      width: 30%;
+      background: #ffffff;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
+    }
+    .content {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      overflow-y: auto;
+    }
+    .cc-item {
+      padding: 1rem;
+      border-bottom: 1px solid #ddd;
+      cursor: pointer;
+    }
+    .cc-item:hover {
+      background-color: #f0f0f0;
+    }
+	.cc-item.active {
+	  background-color: #e0e0e0; /* Light grey */
+	  color: #424242;           /* Dark grey */
+	}
+    .task-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+    }
+    .task-card h2 {
+      font-size: 1.25rem;
+      color: #333;
+      margin: 0 0 0.5rem 0;
+    }
+    .task-card p {
+      margin: 0.5rem 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+    .tag {
+      display: inline-block;
+      background: #f0f0f0;
+      color: #007bff;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      margin-right: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <header >
+	<div >LDS CC Pattern</div>
+	<div ><input type="text" placeholder="Your name" id="username"></input></div>
+
+	
+	</header>
+  <div class="layout" >
+    <div class="sidebar" id="cc-container">
+      <!-- CC Pattern list will be dynamically loaded here -->
+    </div>
+    <div class="content" id="task-container">
+      <!-- Task Pattern cards will be dynamically loaded here -->
+    </div>
+  </div>
+
+  <script>
+    // Sample CC Pattern JSON
+    const ccData = [
+    {
+        "ID": 1,
+        "NAME": "identifying problem for goal setting",
+        "TASK ID": [
+            "8",
+            "9",
+            "10",
+            "11",
+            "25"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Identify problem"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 2,
+        "NAME": "designing a prototype for self-planning",
+        "TASK ID": [
+            "10",
+            "11",
+            "23",
+            "18",
+            "24",
+            "27"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Design solution"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 3,
+        "NAME": "constructing and testing prototype for self-monitoring",
+        "TASK ID": [
+            "17",
+            "18",
+            "27"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Construct prototype",
+            " Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 4,
+        "NAME": "conducting exeperiment for self-monitoring",
+        "TASK ID": [
+            "7",
+            "9",
+            "10",
+            "11",
+            "15",
+            "19",
+            "20",
+            "22",
+            "21",
+            "24",
+            "27"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Conduct experiment"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 5,
+        "NAME": "collecting feedback for self-evaluation",
+        "TASK ID": [
+            "-"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation"
+        ]
+    },
+    {
+        "ID": 6,
+        "NAME": "reviewing product for self-evaluation",
+        "TASK ID": [
+            "19",
+            "20",
+            "21",
+            "27"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation"
+        ]
+    },
+    {
+        "ID": 7,
+        "NAME": "Optimising the product for revision",
+        "TASK ID": [
+            "19",
+            "20",
+            "21"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Revision"
+        ]
+    },
+    {
+        "ID": 8,
+        "NAME": "constructing the solution for self-planning",
+        "TASK ID": [
+            "1",
+            "2",
+            "3",
+            "19",
+            "20",
+            "21"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Construct prototype"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 9,
+        "NAME": "creating design plans for self-planning",
+        "TASK ID": [
+            "19",
+            "20",
+            "21",
+            "22"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Design solution"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 10,
+        "NAME": "constructing prototype for self-monitoring",
+        "TASK ID": [
+            "17",
+            "18",
+            "23"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Construct prototype"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 11,
+        "NAME": "Asking questions for goal-setting",
+        "TASK ID": [
+            "40",
+            "41",
+            "42",
+            "43",
+            "44"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Identify problem"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 12,
+        "NAME": "Using POE inquiry cycle  for goal-setting",
+        "TASK ID": [
+            "45",
+            "37",
+            "38",
+            "39"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Research and propose hypothesis"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 13,
+        "NAME": "designing experiment for self-planning",
+        "TASK ID": [
+            "9"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Design experiment"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 14,
+        "NAME": "Reasoning with data for self-evaluation and revision",
+        "TASK ID": [
+            "55",
+            "57",
+            "56",
+            "59",
+            "61",
+            "60",
+            "58"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Analyse data and interpret results"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation",
+            "Revision"
+        ]
+    },
+    {
+        "ID": 15,
+        "NAME": "revising experimental design for revision",
+        "TASK ID": [
+            "-"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Revision"
+        ]
+    },
+    {
+        "ID": 16,
+        "NAME": "Brainstorming for goal-setting",
+        "TASK ID": [
+            "67",
+            "28",
+            "29",
+            "30"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 17,
+        "NAME": "Competition for self-evaluation",
+        "TASK ID": [
+            "31",
+            "32",
+            "33"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation"
+        ]
+    },
+    {
+        "ID": 18,
+        "NAME": "Ideating design plans for goal-setting",
+        "TASK ID": [
+            "50",
+            "51",
+            "52",
+            "54",
+            "53"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Ideate solution"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 19,
+        "NAME": "Using Mission-focued inquiry cycle for goal-setting",
+        "TASK ID": [
+            "-"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 20,
+        "NAME": "Interviewing client for goal-setting",
+        "TASK ID": [
+            "47",
+            "46",
+            "49",
+            "48"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 21,
+        "NAME": "Theory-practice analysis for self-planning",
+        "TASK ID": [
+            "-"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 22,
+        "NAME": "Designing and reviewing resources for self-monitoring",
+        "TASK ID": [
+            "-"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 23,
+        "NAME": "Using Case-based design cycle for self-planning",
+        "TASK ID": [
+            "-"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 24,
+        "NAME": "Optimizising product for revision",
+        "TASK ID": [
+            "34",
+            "35",
+            "36"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Revision"
+        ]
+    },
+    {
+        "ID": 25,
+        "NAME": "Studying existing solutions for goal-setting",
+        "TASK ID": [
+            "62",
+            "63",
+            "64",
+            "65",
+            "66"
+        ],
+        "Tag_DP": [],
+        "Tag_DP_Steps": [],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 26,
+        "NAME": "Through brainstorming to identify problem for goal-setting",
+        "TASK ID": [
+            "28",
+            "29",
+            "30"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Identify problem"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 27,
+        "NAME": "Through discussing essential design elements to ideate solution for self-planning",
+        "TASK ID": [
+            "85",
+            "86",
+            "87",
+            "88",
+            "89"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Ideate solution"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 28,
+        "NAME": "Through collecting feedback to design solution for self-planning",
+        "TASK ID": [
+            "78",
+            "79",
+            "80"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Design solution"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 29,
+        "NAME": "Through creating criteria and material lists to construct prototype for self-monitoring",
+        "TASK ID": [
+            "68",
+            "69",
+            "70",
+            "71"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Construct prototype"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 30,
+        "NAME": "Through competition based on the rubrics to test performance of the product for self-evaluation",
+        "TASK ID": [
+            "31",
+            "32",
+            "33"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation"
+        ]
+    },
+    {
+        "ID": 31,
+        "NAME": "Through analyzing feedback to optimize the product for revision",
+        "TASK ID": [
+            "34",
+            "35",
+            "36"
+        ],
+        "Tag_DP": [
+            "Engineering Design"
+        ],
+        "Tag_DP_Steps": [
+            "Test performance and optimize the product"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Revision"
+        ]
+    },
+    {
+        "ID": 32,
+        "NAME": "Through predict-observe-explain to formulate inquiry questions for goal setting",
+        "TASK ID": [
+            "45",
+            "37",
+            "38",
+            "39"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Formulate inquiry question"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 33,
+        "NAME": "Through asking questions about variables to research and Propose Hypothesis for goal setting",
+        "TASK ID": [
+            "40",
+            "41",
+            "42",
+            "43",
+            "44"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Research and propose hypothesis"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 34,
+        "NAME": "Through designing fair test to design experiment for self-planning",
+        "TASK ID": [
+            "81",
+            "82",
+            "84",
+            "83"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Design experiment"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 35,
+        "NAME": "Through conducting an experiment based on a set of criteria to collect data for self-monitoring",
+        "TASK ID": [
+            "72",
+            "73",
+            "74",
+            "75",
+            "76",
+            "77"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Conduct experiment"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 36,
+        "NAME": "Through data analysis and the scientific reasoning process to interpret results for self-evaluation and revision",
+        "TASK ID": [
+            "55",
+            "57",
+            "56",
+            "59",
+            "61",
+            "60",
+            "58"
+        ],
+        "Tag_DP": [
+            "Scientific Investigation"
+        ],
+        "Tag_DP_Steps": [
+            "Analyse data and interpret results"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation",
+            "Revision"
+        ]
+    },
+    {
+        "ID": 37,
+        "NAME": "Through reading and discussing model texts to understand the genre features of a news report to facilitate students’ identification of the writing purpose and target audience of their reports for goal setting",
+        "TASK ID": [
+            "90",
+            "91",
+            "92"
+        ],
+        "Tag_DP": [
+            "Inquiry-Oriented Process Writing"
+        ],
+        "Tag_DP_Steps": [
+            "Identify the writing purpose, target audience, and features of the genre"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 38,
+        "NAME": "Through interviewing victims/ witnesses to understand the vocabulary needed to collect information for the report for self-planning",
+        "TASK ID": [
+            "93"
+        ],
+        "Tag_DP": [
+            "Inquiry-Oriented Process Writing"
+        ],
+        "Tag_DP_Steps": [
+            "Research, collect and organize information for the writing task"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 39,
+        "NAME": "Through drafting the report to integrate the vocabulary collected and the genre features learnt to produce a coherent draft for self-monitoring",
+        "TASK ID": [
+            "94",
+            "95"
+        ],
+        "Tag_DP": [
+            "Inquiry-Oriented Process Writing"
+        ],
+        "Tag_DP_Steps": [
+            "Prepare the first draft"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 40,
+        "NAME": "Through assessing the draft report against the rubric given to evaluate how well (e.g. categories and numbers) the words collected are used, and the genre features learnt are applied to prepare for revising the draft through self-evaluation",
+        "TASK ID": [
+            "96",
+            "97"
+        ],
+        "Tag_DP": [
+            "Inquiry-Oriented Process Writing"
+        ],
+        "Tag_DP_Steps": [
+            "Conduct peer and self assessment"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation"
+        ]
+    },
+    {
+        "ID": 41,
+        "NAME": "Through revising the draft based on findings of the self and/or peer evaluation to integrate accurately the words collected and the genre features learnt to finalize and publish the report for revision",
+        "TASK ID": [
+            "98",
+            "99"
+        ],
+        "Tag_DP": [
+            "Inquiry-Oriented Process Writing"
+        ],
+        "Tag_DP_Steps": [
+            "Revise and publish"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Revision"
+        ]
+    },
+    {
+        "ID": 42,
+        "NAME": "Through information exploration to identify aims (purposes of legislative council meeting) for setting goals",
+        "TASK ID": [
+            "100",
+            "101"
+        ],
+        "Tag_DP": [
+            "Language *PSHE Education (students as legislators)"
+        ],
+        "Tag_DP_Steps": [
+            "Identify Aims through Exploration: background information, functions of the role, and purposes of the council meeting"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 43,
+        "NAME": "Through searching and reading information strategically to facilitate focus understanding (find out directions for policy formulation) for self-planning",
+        "TASK ID": [
+            "102",
+            "103"
+        ],
+        "Tag_DP": [
+            "Language *PSHE Education (students as legislators)"
+        ],
+        "Tag_DP_Steps": [
+            "Research as Expert"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 44,
+        "NAME": "Through first draft sharing to understand the \"whole picture\" for self-monitoring, self evaluation and revision",
+        "TASK ID": [
+            "104",
+            "105"
+        ],
+        "Tag_DP": [
+            "Language *PSHE Education (students as legislators)"
+        ],
+        "Tag_DP_Steps": [
+            "Prepare and Share First Draft"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation",
+            "Revision",
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 45,
+        "NAME": "Through public sharing, Q&A and response to elicit effective discussion for self-evaluation and revision",
+        "TASK ID": [
+            "105",
+            "106",
+            "107"
+        ],
+        "Tag_DP": [
+            "Language *PSHE Education (students as legislators)"
+        ],
+        "Tag_DP_Steps": [
+            "Conduct Discussion to Reach Consensus"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation",
+            "Revision"
+        ]
+    },
+    {
+        "ID": 46,
+        "NAME": "Through voting and class writing to reach consensus collaboratively for revision",
+        "TASK ID": [
+            "108",
+            "109"
+        ],
+        "Tag_DP": [
+            "Language *PSHE Education (students as legislators)"
+        ],
+        "Tag_DP_Steps": [
+            "Produce Collaborative Output"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Revision"
+        ]
+    },
+    {
+        "ID": 47,
+        "NAME": "Through identifying the main subject of the article to set learning objectives for goal setting",
+        "TASK ID": [
+            "110"
+        ],
+        "Tag_DP": [
+            "Performer/ Entertainer Reading learning"
+        ],
+        "Tag_DP_Steps": [
+            "Determining the script"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Goal-setting"
+        ]
+    },
+    {
+        "ID": 48,
+        "NAME": "Through writing scripts, assigning character lines, and preparing materials to prepare for the show for self-planning",
+        "TASK ID": [
+            "111",
+            "112",
+            "113",
+            "116"
+        ],
+        "Tag_DP": [
+            "Performer/ Entertainer Reading learning"
+        ],
+        "Tag_DP_Steps": [
+            "Preparation for the show"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-planning"
+        ]
+    },
+    {
+        "ID": 49,
+        "NAME": "Through performing the script, refining the performance, and revising the script to rehearse for self-monitoring and revision.",
+        "TASK ID": [
+            "114",
+            "115"
+        ],
+        "Tag_DP": [
+            "Performer/ Entertainer Reading learning"
+        ],
+        "Tag_DP_Steps": [
+            "rehearsals"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring",
+            "Revision"
+        ]
+    },
+    {
+        "ID": 50,
+        "NAME": "Through stage performance to Show performing for self-monitoring",
+        "TASK ID": [
+            "114"
+        ],
+        "Tag_DP": [
+            "Performer/ Entertainer Reading learning"
+        ],
+        "Tag_DP_Steps": [
+            "Show performing"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-monitoring"
+        ]
+    },
+    {
+        "ID": 51,
+        "NAME": "Through receiving scores and revision suggestions to gather audience feedback for self-evaluation and revision",
+        "TASK ID": [
+            "117",
+            "115"
+        ],
+        "Tag_DP": [
+            "Performer/ Entertainer Reading learning"
+        ],
+        "Tag_DP_Steps": [
+            "Audience feedback"
+        ],
+        "Tag_PA": [
+            "SDL"
+        ],
+        "Tag_P_Foci": [
+            "Self-evaluation",
+            "Revision"
+        ]
+    }
+    ];
+
+    // Sample Task Pattern JSON
+    const taskData = [
+    {
+        "ID": 1,
+        "Name": "Video watching for identifying problems",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "Video is a stimulus/ or video watching is a stimulating activity for students to identify problems."
+        ],
+        "Instruction": [
+            "Students may find it difficult to catch the critical points. Therefore, it would be useful to: 1. [async] provide in-video quiz 2. [sync] provide guiding questions for discussion before and after the video"
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Multimedia (e.g. video, audio, slideshow)"
+        ]
+    },
+    {
+        "ID": 2,
+        "Name": "Video watching for obtaining information",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "Video is a stimulus/ or video watching is a stimulating activity for students to obtain information."
+        ],
+        "Instruction": [
+            "Students may find it difficult to catch the critical points. Therefore, it would be useful to : 1. [async] provide in-video quiz 2. [sync] provide guiding questions for discussion before and after the video"
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Multimedia (e.g. video, audio, slideshow)"
+        ]
+    },
+    {
+        "ID": 3,
+        "Name": "Using reading for introducing new ideas & obtaining information",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "The major purpose for reading is to help students gain a deeper understanding of a text."
+        ],
+        "Instruction": [
+            "1. The design of social annotation can be added to reading tasks. This collaborative reading experience will help students engage actively outside of class. 2. The combination of this pattern and the quiz (Practice category) will provide an external incentive for doing the readings and help students reflect on what they have read."
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "120"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Quiz",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 4,
+        "Name": "Lecture for obtaining information",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "Lecture is an effective way for students to acquire knowledge of terms, basic facts, and simple concepts. "
+        ],
+        "Instruction": [
+            "1. Conduct a pre-class survey to learn about student background and their prior knowledge on the subject. Make your class be adaptive and not bore or overwhelm the students. 2. Focus on principle and concepts that help students categorize the facts need to memorize, i.e., if students have several facts to memorize about education reform, teachers can provide organizing schema to facilitate students' self-generated information."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 5,
+        "Name": "Site visit for authentic understanding",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "Site visits can serve different purposes in learning and teaching. In this pattern, a site visit can be an effective way to learn about some complex industrial processes or how a particular organization operates. It provides students with an opportunity to learn in an authentic environment and gain contextual understanding for the topic concern. "
+        ],
+        "Instruction": [
+            "1. The learning designer should have a good reason for why a site visit is preferred to other means of learning about the topic. Students should be provided with a good orientation and maybe some prior information search etc. to make the best use of the site visit. 2. Students should be guided to plan for what to look out for during the site visit. 3. If this site visit is set within the context of self-directed learning, the above preparation work could be set as a pre-task for students to complete on an individual or group basis. 4. Students may be put into groups for the site visit, depending on the specifics of the site and the overall pedagogy. 5. Follow up tasks such as discussion and debriefing would help students consolidate their learning during their site visit and connect that with the topic to be learnt."
+        ],
+        "Stage": [
+            "After-class"
+        ],
+        "Duration": [
+            "90"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 6,
+        "Name": "Quiz for remembering and comprehending knowledge",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Practice"
+        ],
+        "Description": [
+            "Quiz can be used as a quick way for students to identify the gaps in knowledge learned, i.e., what they know and what they don't know."
+        ],
+        "Instruction": [
+            "Allowing students to use multiple test trials and get instant feedback (i.e., page number of the answer) from the system can help students earn a better grade and gain a learning opportunity."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Quiz",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 7,
+        "Name": "Assessment of knowledge and skills acquired",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Test / Assessment"
+        ],
+        "Description": [
+            "Assessment is designed for measuring whether students are meeting certain standards, providing information for accreditation, comparing students' performance with a given population, and checking the student's length and depth of learning achievement. "
+        ],
+        "Instruction": [
+            "Conduct a closed-book assessment within a short time frame. The assessment can be designed in a selected-response format, e.g. Midterm/final written exam, proctored via Zoom/OLEX, randomized problem statements, quizzes, timed problem questions, lab practical, etc."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "60"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Quiz",
+        "Resource": []
+    },
+    {
+        "ID": 8,
+        "Name": "Conduct online search to address learning needs",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "In the 21st-century e-learning environment, encouraging students to explore information online helps develop their information literacy and critical thinking skills. "
+        ],
+        "Instruction": [
+            "1. Help students identify their learning goals and objectives before they start to explore information online. 2. Provide explicit guidelines and devote class time to discuss the search results to allow students to get feedback."
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 9,
+        "Name": "Conduct experiment to collect data for an inquiry",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "Experiments can be used either to introduce new ideas or to clarify puzzling aspects of topics students typically struggle with by collecting data. "
+        ],
+        "Instruction": [
+            "1. Experiments are activities where students will work in groups on guided inquiry questions and carefully designed worksheets. 2. The combination of this pattern and the quiz (Practice category) can be added to push students to think about follow-up experiments or extend the concept to another application."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "40"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki; Quiz",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 10,
+        "Name": "Synchronous discussion",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "Synchronous discussion can encourage students to learn from one another through collaboratively exchanging ideas among teachers and students. "
+        ],
+        "Instruction": [
+            "1.For large group discussion, role-playing is a technique to force students' positive interactions and relations, i.e., assigned roles of researchers or school principals, to develop their insights into stakeholder positions. 2.For whole class discussion, ask a mix of questions to help students recall specific information, describe topics and phenomena, and evaluate information after the discussion. 3. Jigsaw discussion can be introduced to get more specific feedback by enabling each student of a \"home\" group to specialize in one aspect of a topic."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki; URL",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 11,
+        "Name": "Asynchronous online discussion",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "Asynchronous discussion allows students to post and respond following their own pace to create a learning opportunity with the potential to be reflective. "
+        ],
+        "Instruction": [
+            "1. Asynchronous discussion can be organized as group or whole class mode: 1.1 For whole class discussion, post requirement to promote participation, respond requirement to promote reading and responding to peer's postings, use of hashtag to promote cognitive and metacognitive engagement. 1.2. For group discussion, pay attention to the grouping method, e.g., designed heterogeneously by the teacher, in order to maximize variation of perspectives and ideas."
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 12,
+        "Name": "Role-play for exploring multiple perspectives",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "Through role-play, students try to take on the perspective of others in contexts that they may or may not be familiar with. This will help them explore different perspectives, such as interests, needs, responsibilities and challenges of different stakeholders. "
+        ],
+        "Instruction": [
+            "1. A scenario or core issue is needed before students construct roles, interactions, and dialogues in the role play. 2. Students can be divided into groups, with each group playing the role of a specific stakeholder. 3. A role play should be followed by a debriefing or reflection session for consolidating the learning based on the exploration."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 13,
+        "Name": "VR to provide enhanced learner experience",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "VR enables students to learn through practical experience, as students are immersed in a world that simulates real-life. VR helps students learn from a first person perspective, which would increase students' overall comprehension of more complex subjects, theories, and languages."
+        ],
+        "Instruction": [
+            "1. Set a specific scenario to immerse students in unsolved problems, i.e., facing the pandemic challenge and inspiring them to find the difficulties people encounter daily. 2. VR may work well for topics that are visual and tactile, for example, allowing students to learn \"firsthand\" perspective."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "20"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 14,
+        "Name": "Hands-on exploration of artefact",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "Students engage in investigative explorations in physical or virtual settings. Students need to observe the features and characteristics of the artefact, and/or to explore the utility, strengths, and weaknesses of the artefact with reference to its intended use. "
+        ],
+        "Instruction": [
+            "1. This task can be organized as individual or group activity. 2. Students should be guided to plan for the focus of the exploration before the hands-on exploration. 3. If this task is set within the context of self-directed learning, the exploration focus could be set as a pre-task for students to complete on an individual or group basis."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Wiki; Assignment",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 15,
+        "Name": "Field trip for collecting samples/images",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "Field trip enables students to explore and engage in collecting samples or images in authentic settings. The materials collected can be used in their subsequent learning tasks. "
+        ],
+        "Instruction": [
+            "1. The task can be organized as an individual or group activity. 2. Students should be guided to the kind of samples/images etc. to be collected for later use in a productive learning phase of the overall learning design. 3. If this task is set within the context of self-directed learning, pre-tasks for students to plan for their field trip are important pre-conditions for the field trip to be productive in achieving the intended goals."
+        ],
+        "Stage": [
+            "After-class"
+        ],
+        "Duration": [
+            "60"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 16,
+        "Name": "Academic writing",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "Writing serves the purpose of helping students analyze and evaluate issues related to real-world problems. "
+        ],
+        "Instruction": [
+            "Writing portfolio can provide an iterative process with students to achieve the final writing. Separate the complex writing process into smaller chunks along with the feedback for them to refine their thoughts."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "120"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki; Assignment",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 17,
+        "Name": "Product creation for developing skills and applying knowledge",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Tangible / Manipulable Artefacts"
+        ],
+        "Description": [
+            "Students will take part in solving real-world problems by creating a functional whole by putting elements together. "
+        ],
+        "Instruction": [
+            "1. Encourage students to iteratively modify their product, i.e., design prototype, test, and redesign. 2. Present their design and get feedback from teachers and peers to refine their artifacts."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "60"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 18,
+        "Name": "Co-construction of digital artefacts",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Tangible / Manipulable Artefacts"
+        ],
+        "Description": [
+            "Using an appropriate digital platform as a collaborative workspace suitable for the nature of the artefact to be produced (e.g., text (wiki), graphics (e.g., MIro), video, VR, etc.) to support students in exploring ideas about and co-creating and co-constructing their artefacts. "
+        ],
+        "Instruction": [
+            "Provide students with a digital platform as a collaborative workspace to share, collate and refine their ideas and construction of their target digital artefacts."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "20"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 19,
+        "Name": "Synchronous presentation for sharing deliverables from productive learning tasks",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "Synchronous presentation plays a role in students' demonstration of understanding and getting instant feedback from peers and teachers."
+        ],
+        "Instruction": [
+            "1. Specify what (themes and focal issues), who (presenters), and how long the presentation will be and provide rubrics for self-/peer-assessment before the presentation. 2. Set breakout groups to gather feedback, questions, and suggestions for each presentation. Jigsaw discussion can be introduced to get more specific feedback by enabling each student of a \"home\" group to specialize in one aspect of a topic."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "8"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Reading material",
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 20,
+        "Name": "Asynchronous presentation for sharing deliverables from productive learning tasks",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "Asynchronous presentations provide more flexibility to students to repeat watching the presentation video to get more ideas. "
+        ],
+        "Instruction": [
+            "1. Specify what (themes and focal issues), who (presenters), and how long the presentation will be. 2. Create a virtual space for sharing presentations and getting feedback before the presentation. 3. Facilitate an in-class discussion highlighting everyone's key learning points and giving students problems or challenges."
+        ],
+        "Stage": [
+            "After-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Assignment",
+        "Resource": [
+            "Reading material",
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 21,
+        "Name": "Presentation of generated deliverables",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "Presentation allows students to demonstrate their designs and artefacts and getting instant feedback from peers and teachers. "
+        ],
+        "Instruction": [
+            "1. Specify what (themes and focal issues), who (presenters), and how long the presentation will be. 2. Provide rubrics for self-/peer-assessment before the presentation. 3. (Breakout) groups can be formed to gather feedback, questions, and suggestions for each presentation. 4. Jigsaw discussion can be introduced to get more specific feedback by enabling each student of a \"home\" group to specialize in one aspect of a topic."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "110"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Questionnaire",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 22,
+        "Name": "Construct and present a mind map to make understanding explicit",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "A mind-map is a useful format for representing the key concepts about a particular theme and the relationships among those concepts. The construction of a mind-map is a useful cognitive task for students to reflect on and make their understanding explicit. Presentation of a mind-map can be useful for formative and/or peer assessment and for identifying students’ inadequate knowledge or misconceptions. "
+        ],
+        "Instruction": [
+            "You are recommended to give clear instructions to students, including what digital tool they could use to generate and share their mind-maps online, if there are particular concepts/keywords they need to include."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 23,
+        "Name": "Co-construction of written artifacts using wiki",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "Using Wiki as a vehicle to encourage group reflection will help students to achieve greater coordination and gain insights within a group."
+        ],
+        "Instruction": [
+            "Allowing students to use Wiki as a space to archive the resources and materials explored and discuss the group's understanding of the key concepts and theories can help groups observe and reflect their learning process."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "40"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 24,
+        "Name": "Reflective report for conducting self-reflection",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "Reflective report will allow students to make observations about their learning process and demonstrate their thinking to the audience."
+        ],
+        "Instruction": [
+            "1. Structure the reflections as a continuous work to help students consider the implied stages in learning progress. 2. The combination of group presentation pattern and writing self-reflection helps identify the learning gaps among group members."
+        ],
+        "Stage": [
+            "After-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Blog",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 25,
+        "Name": "Student survey for formative assessment and/or prompt reflection",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "Use a quick survey to assess students’ understanding or attitudes related to the topic to be learnt. This is useful for formative assessment to identify students’ inadequate knowledge or misconceptions, or to gather information about their attitude towards particular issues. Completing the survey will help to prompt students to reflect on their knowledge, skills, or attitudes and values. "
+        ],
+        "Instruction": [
+            "1. The survey should ideally be no more than 5 mins and can be done before the class starts in a blended setting. 2. You are recommended to use published/previously developed surveys whenever possible as you would be able to use the norms and reference benchmarks for comparison with your students, if available."
+        ],
+        "Stage": [
+            "After-class"
+        ],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "URL; Questionnaire",
+        "Resource": []
+    },
+    {
+        "ID": 26,
+        "Name": "Writing portfolio for improving writing skills",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "Giving students greater opportunities to revise their writing will lead to improved writing skills. "
+        ],
+        "Instruction": [
+            "1. Explaining the revising process clearly: writing goals, targeted audience, key elements, and assessment criteria. 2. Provide guided practice with oral feedback to help students understand that writing is a social process. 3. Set \"multiple trials\" and \"do not store the submitted papers\" on Turnitin for ongoing submissions of writing. 4. Provide rubric for students to self-monitor and evaluate their own work."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "120"
+        ],
+        "Delivery mode": "Online: Asynchronous",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Assignment",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 27,
+        "Name": "Well-designed criteria for evaluating self/peer performance",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "Well-designed criteria allow student comparison of lesson objectives to what is assessed."
+        ],
+        "Instruction": [
+            "1. Assign breakout group discussion for self-/peer-assessment with clear instruction, i.e., worksheet, rubric, or guiding questions, for students to define good performance. 2. Encourage students to utilize a self-developed rubric to evaluate their own or a peer's work and share what kinds of feedback they find most valuable."
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Online: Synchronous",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)",
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 28,
+        "Name": "Students discuss the needs of users",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 29,
+        "Name": "Students work on indentifying the most prominent problem needed to be addressed.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Wiki; URL",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 30,
+        "Name": "Students present their findings on user needs to the whole class",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Wiki; Wiki; URL",
+        "Resource": []
+    },
+    {
+        "ID": 31,
+        "Name": "Students receive teachers' instruction on the success criteria of the competition",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 32,
+        "Name": "Students present their product in the competition",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 33,
+        "Name": "Students self/peer evaluate the performance of their products based on the rubrics.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 34,
+        "Name": "Students analyze the feedback from users/teachers and search methods to optimise the product",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": 1,
+        "Feedback": NaN,
+        "Elearning_Tool": "URL; Chat",
+        "Resource": []
+    },
+    {
+        "ID": 35,
+        "Name": "Students work out a plan/draw sketch design to refine their production",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki; Forum",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 36,
+        "Name": "Students work on the product optimization",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 37,
+        "Name": "Based on the scenario, students predict what would happen when a particular variable change.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Individual",
+        "Group Size": 1,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 38,
+        "Name": "Students discuss and explain what has been observed: whether and why.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": []
+    },
+    {
+        "ID": 39,
+        "Name": "Students write down the inquiry questions and shared with the whole class",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 40,
+        "Name": "Students search and explore new relevant information about the variables of the problem",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": 1,
+        "Feedback": NaN,
+        "Elearning_Tool": "Lesson",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 41,
+        "Name": "Group discussion and come up with some hypothesis",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": []
+    },
+    {
+        "ID": 42,
+        "Name": "Write down the hypothesis and share with the whole class",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Wiki; Lesson",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 43,
+        "Name": "Students receive feedback and comments from teachers and other students",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 44,
+        "Name": "Students revise the hypothesis based on the feedback reveived",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": []
+    },
+    {
+        "ID": 45,
+        "Name": "Students observe the scenario of the design problem through stimulus",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Multimedia (e.g. video, audio, slideshow)"
+        ]
+    },
+    {
+        "ID": 46,
+        "Name": "Students conduct a client interview to understand the design needs",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Lesson; URL; Choice",
+        "Resource": []
+    },
+    {
+        "ID": 47,
+        "Name": "Students observe the scenario of the design problem through stimulus",
+        "Duplicate": [
+            "Duplicated with Task 45. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Multimedia (e.g. video, audio, slideshow)"
+        ]
+    },
+    {
+        "ID": 48,
+        "Name": "Students present their findings on user needs to the whole class",
+        "Duplicate": [
+            "Duplicated with Task 30. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Wiki; URL",
+        "Resource": []
+    },
+    {
+        "ID": 49,
+        "Name": "Students work on the information collected from the interview and select the most prominent problem needed to be addressed.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 50,
+        "Name": "Students search and study existing solutions to the users needs.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": 1,
+        "Feedback": NaN,
+        "Elearning_Tool": "URL; Chat",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 51,
+        "Name": "Students reflect the collected existing solutions.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 52,
+        "Name": "Students brainstorm on their findings, and converge on one best/feasible solution.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 53,
+        "Name": "Students revise the design problem based on the feedback received.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": []
+    },
+    {
+        "ID": 54,
+        "Name": "Students receive feedback and comments from teachers and other students",
+        "Duplicate": [
+            "Duplicated with Task 43. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 55,
+        "Name": "Students identify causal and/or correlational relationship within various data sets",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Practice"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 56,
+        "Name": "Students write down their results/conclusion through the process of scientific reasoning (including claim, evidence, reasoning)",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": []
+    },
+    {
+        "ID": 57,
+        "Name": "Students ascertain the validity and reliability of the evidence in support of the hypothesis before making a claim",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 58,
+        "Name": "Students construct graphical displays to illustrate the relationships of the variables, and present to the whole class",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 59,
+        "Name": "Students evaluate and improve their written results/conclusion",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": "Assignment; Forum",
+        "Resource": []
+    },
+    {
+        "ID": 60,
+        "Name": "Students use graphical displays and other visualizations to communicate their findings, conclusions and limitations",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 61,
+        "Name": "Students evaluate their scientific methods and identify limitations",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice; Forum",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 62,
+        "Name": "Students search and study existing solutions to the users needs.",
+        "Duplicate": [
+            "Duplicated with Task 50. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": 1,
+        "Feedback": NaN,
+        "Elearning_Tool": "URL; Chat",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 63,
+        "Name": "Students reflect the collected existing solutions.",
+        "Duplicate": [
+            "Duplicated with Task 51. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 64,
+        "Name": "Students brainstorm on their findings, and converge on one best/feasible solution.",
+        "Duplicate": [
+            "Duplicated with Task 52. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 65,
+        "Name": "Students receive feedback and comments from teachers and other students",
+        "Duplicate": [
+            "Duplicated with Task 43. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 66,
+        "Name": "Students revise the design problem based on the feedback received.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": []
+    },
+    {
+        "ID": 67,
+        "Name": "Students observe the scenario of the design problem through stimulus",
+        "Duplicate": [
+            "Duplicated with Task 45. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "DL - Receiving and Interpreting Information"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": []
+    },
+    {
+        "ID": 68,
+        "Name": "Group discussion to identify the factors to be evaluate the prototype that fulfills users' need",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 69,
+        "Name": "Students list criteria/rubric used to evaluate the effectiveness of the prototype",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 70,
+        "Name": "Students explores the materials",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "60"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 71,
+        "Name": "Students produce an early, inexpensive, and scaled down version of the product",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Tangible / Manipulable Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "60"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 72,
+        "Name": "Group discussion to identify the factors to be monitored for the successful implementation of the experiment plan",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 73,
+        "Name": "List criteria/rubric used to evaluate the success of the experiment",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 74,
+        "Name": "Conduct the experiment, observe the phenomena and record the data",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Tangible / Manipulable Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "20"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Reading material"
+        ]
+    },
+    {
+        "ID": 75,
+        "Name": "Conduct self-/peer-assessment on the experiment procedure to identify the areas of improvement",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 76,
+        "Name": "Improve the experiment design and operation",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 77,
+        "Name": "Summarize and display the data in the form of spreadsheets, tables, or charts.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "11"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Assignment",
+        "Resource": []
+    },
+    {
+        "ID": 78,
+        "Name": "Students work out a plan/draw sketch design",
+        "Duplicate": [
+            "Duplicated with Task 35. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Wiki; Forum; Lesson",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 79,
+        "Name": "Students receive feedback and comments from teachers and other students",
+        "Duplicate": [
+            "Duplicated with Task 43. No need to review"
+        ],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "Choice",
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 80,
+        "Name": "Students revise the design problem based on the feedback received.",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 81,
+        "Name": "Group discussion to differentiate dependent/independent/control varibles and design instrument to measure the variables",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 82,
+        "Name": "Students write a plan of scientific inquiry",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum; Wiki; URL",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 83,
+        "Name": "Students revise and finalize the plan",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 5,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 84,
+        "Name": "Students reflect on the alignmennt between hypothesis and inquiry methods, as well as other practical issues of the experiment design",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "5"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Individual",
+        "Group Size": 1,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 85,
+        "Name": "Practice a range of technology/tools, and/or receive information to understand constraints and possibilities",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Tangible / Immersive Investigation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "60"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "URL",
+        "Resource": []
+    },
+    {
+        "ID": 86,
+        "Name": "Discuss in groups to identify essential design elements",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": [
+            "Practice execise (e.g. worksheet, workbook)"
+        ]
+    },
+    {
+        "ID": 87,
+        "Name": "Construct a visible artefact to represent design plans",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 88,
+        "Name": "Reflect on feedback through peer review process",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": [
+            "Assessment tool (e.g. rubrics, checklist)"
+        ]
+    },
+    {
+        "ID": 89,
+        "Name": "Refine the plan",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 6,
+        "Feedback": NaN,
+        "Elearning_Tool": "Forum",
+        "Resource": []
+    },
+    {
+        "ID": 90,
+        "Name": "Research journalistic text types (e.g., news articles, editorials) online to collect key information needed for the report",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 91,
+        "Name": "Conduct interview to collect information for a newspaper",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "Pre-class"
+        ],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 92,
+        "Name": "Reflect and consolidate the role of journalist in reading process",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 93,
+        "Name": "Read the text actively and highlighte important points to analyze the information for relevance",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "DL - Practice"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 94,
+        "Name": "Group discussion to summarize the main points of the text",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 95,
+        "Name": "Synthesize information from multiple sources to create a coherent narrative",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Individual",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 96,
+        "Name": "Share the summary and synthesis with peers for feedback",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "20"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Group",
+        "Group Size": 4,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 97,
+        "Name": "Conduct a peer-/self-assessment to identify areas for improvement",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "10"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Peer",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 98,
+        "Name": "Revise the draft report based on feedback",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "In-class"
+        ],
+        "Duration": [
+            "15"
+        ],
+        "Delivery mode": "Face-to-face: Inside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 99,
+        "Name": "Finalize and publish the news report",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [
+            "After-class"
+        ],
+        "Duration": [
+            "30"
+        ],
+        "Delivery mode": "Face-to-face: Outside classroom",
+        "Social Organization": "Whole Class",
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 100,
+        "Name": "Complete pre-lesson tasks to understand the background context of the issue being discussed",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "Pre-lesson task is an activity for learners to explore the background information related to the task, so as to facilitate the steps afterwards."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: forum, H5P (interactive video)"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": "H5P",
+        "Resource": []
+    },
+    {
+        "ID": 101,
+        "Name": "Discuss the aim of legislative council and the role of a lesgislator / legislative council member",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "This task aims at building up mutual understanding on the \"final target\" of the council meeting, so that students shall adjust their behaviour and mindset according to the role's characteristics and aims."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: forum"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 102,
+        "Name": "Explore information related to the stakeholder (about their needs, problems they face and policy suggestions they give)",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "This task constructs learners' cognitive understanding, understand the values that the stakeholder holds",
+            " and elicits empathy regarding the stakeholder that the they are responsible for."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: Wiki"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 103,
+        "Name": "Present the first draft (in groups of stakeholder representatives)",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "This task gives ground to learners expressing their learning outputs in an structured way. Their output will be gathered for peer review and peer learning (conceptually and generic-skill-wise)"
+        ],
+        "Instruction": [
+            "Suggested iLap tool: assignment, workshop, forum"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 104,
+        "Name": "Read peers' work Construct a mind map to show the \"whole picture\"",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "Using graphic organizers could support learners foster learners' skills in digesting, integrating and re-organizing the knowledge they receive, and link them in a meaningful way."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: database"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 105,
+        "Name": "Critical Review of peers' work",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "Peer critical review gives opportunities for learners to adopt and apply school-based model in self and peer evaluation",
+            " thus ultimately it is hoped that students could apply the model(s) when writing drafts (a step before being reviewed)."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: workshop"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 106,
+        "Name": "Share \"Response\" to another group (another stakeholder representative)",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "This tasks allow learners to actively participate in discussion, and give verbal response which supplements information stated in the written response (if a written task is also completed)."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: forum"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 107,
+        "Name": "Revise own work after listening to others' feedback",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "Revising own's work consolidates learning and possibly gives ideas for learners to practice how to conduct self-monitoring, evaluation and revision."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: assignment"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 108,
+        "Name": "Class (Council) Voting",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "This is a round-up activity which visualizes how a consensus is reached among a group of learners (acting as stakeholders)"
+        ],
+        "Instruction": [
+            "Suggested iLap tool: voting"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 109,
+        "Name": "Co-Draft the Policy Proposal Together",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Construction: Conceptual / Visual Artefacts"
+        ],
+        "Description": [
+            "This form of collaborative learning output is a typical yet formal one. It could reinforce students' understanding about the role of legislator."
+        ],
+        "Instruction": [
+            "Suggested iLap tool: Wiki"
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 110,
+        "Name": "identifying the intent of the article for goal setting",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 111,
+        "Name": "Determine role assignments for self-planning",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 112,
+        "Name": "Determine dialogue assignments for self-planning",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Explorations through Conversation"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 113,
+        "Name": "Prepare performance materials for self-planning",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "EL - Information Exploration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 114,
+        "Name": "Perform according to the plan for self-monitoring",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "PL - Presentation, Performance and Illustration"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 115,
+        "Name": "Modify the performance based on issues for Revision",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Revision"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 116,
+        "Name": "All students create a performance evaluation rubric for self-evaluation",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Reflection"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    },
+    {
+        "ID": 117,
+        "Name": "Audience assess for self-evaluation",
+        "Duplicate": [],
+        "Tag_Task_Type": [
+            "RL - Self- / Peer- assessment"
+        ],
+        "Description": [
+            "\ "
+        ],
+        "Instruction": [
+            "\ "
+        ],
+        "Stage": [],
+        "Duration": [],
+        "Delivery mode": NaN,
+        "Social Organization": NaN,
+        "Group Size": NaN,
+        "Feedback": NaN,
+        "Elearning_Tool": NaN,
+        "Resource": []
+    }
+];
+
+    // Function to render CC patterns in the sidebar
+    function renderCCPatterns(ccData) {
+      const ccContainer = document.getElementById("cc-container");
+      ccContainer.innerHTML = ""; // Clear existing content
+      ccData.forEach(cc => {
+        const ccItem = document.createElement("div");
+        ccItem.className = "cc-item";
+        ccItem.textContent = `(${cc.ID}) ${cc.NAME}`;
+		
+		var escapedCC = JSON.stringify(cc)
+    .replace(/'/g, "\\'") // Escape single quotes
+    .replace(/"/g, '&quot;') // Escape double quotes for HTML
+    .replace(/ /g, '\ '); // Escape newlines
+		
+		
+		ccItem.innerHTML = `
+		  <div>(${cc.ID}) ${cc.NAME}</div>
+		  <br>
+		  <div><strong>Discipinary practice:</strong> ${cc.Tag_DP}</div>
+		  <div><strong>Workflow steps:</strong> ${cc.Tag_DP_Steps}</div>
+		  <div><strong>Pedagogical approach:</strong> ${cc.Tag_PA}</div>
+		  <div><strong>Pedagogical foci:</strong> ${cc.Tag_P_Foci}</div>
+		  <br>
+		  <button onClick="commentHandler('CC', ${escapedCC})">Comment</button>
+		`;
+		
+		
+		
+        ccItem.dataset.id = cc.ID;
+        ccItem.dataset.taskIds = cc["TASK ID"].join(",");
+        ccItem.onclick = () => {
+          document.querySelectorAll(".cc-item").forEach(item => item.classList.remove("active"));
+          ccItem.classList.add("active");
+          renderTaskPatterns(cc["TASK ID"]);
+        };
+        ccContainer.appendChild(ccItem);
+      });
+    }
+
+    // Function to render Task patterns in the content area
+    function renderTaskPatterns(taskIds) {
+      const taskContainer = document.getElementById("task-container");
+      taskContainer.innerHTML = ""; // Clear existing content
+
+      const filteredTasks = taskData.filter(task => taskIds.includes(task.ID.toString()));
+
+      if (filteredTasks.length === 0) {
+        taskContainer.innerHTML = "<p>No matching tasks found.</p>";
+        return;
+      }
+
+      filteredTasks.forEach(task => {
+        const taskCard = document.createElement("div");
+        taskCard.className = "task-card";
+
+        const title = document.createElement("h2");
+        title.textContent = `(${task.ID}) ${task.Name}`;
+
+        const description = document.createElement("p");
+        description.innerHTML = `<strong>Description:</strong> ${task.Description}`;
+
+        const instruction = document.createElement("p");
+        instruction.innerHTML = `<strong>Instruction:</strong> ${task.Instruction}`;
+
+        const stage = document.createElement("p");
+        stage.innerHTML = `<strong>Stage:</strong> ${task.Stage}`;
+
+        const duration = document.createElement("p");
+        duration.innerHTML = `<strong>Duration:</strong> ${task.Duration} mins`;
+		
+        const deliveryMode = document.createElement("p");
+        deliveryMode.innerHTML = `<strong>Delivery Mode:</strong> ${task["Delivery mode"]}`;
+
+        const socialOrganization = document.createElement("p");
+        socialOrganization.innerHTML = `<strong>Social Organization:</strong> ${task["Social Organization"]}`;
+
+        const groupSize = document.createElement("p");
+        groupSize.innerHTML = `<strong>Group Size:</strong> ${task["Group Size"]}`;
+		
+        const feedback = document.createElement("p");
+        feedback.innerHTML = `<strong>Feedback:</strong> ${task["Feedback"]}`;
+		
+		const elearingTool = document.createElement("p");
+        elearingTool.innerHTML = `<strong>Elearning_Tool:</strong> ${task["Elearning_Tool"]}`;
+		
+		const resource = document.createElement("p");
+        resource.innerHTML = `<strong>Resource:</strong> ${task["Resource"]}`;
+		
+		// Tags
+        const tags = document.createElement("div");
+        tags.className = "tags";
+        task.Tag_Task_Type.forEach(tag => {
+          const tagElem = document.createElement("span");
+          tagElem.className = "tag";
+          tagElem.textContent = tag;
+          tags.appendChild(tagElem);
+        });
+		
+		var escapedTask = JSON.stringify(task)
+    .replace(/'/g, "\\'") // Escape single quotes
+    .replace(/"/g, '&quot;') // Escape double quotes for HTML
+    .replace(/ /g, '\ '); // Escape newlines
+		
+		const comment = document.createElement("p");
+        comment.innerHTML = `<button onClick="commentHandler('Task', ${escapedTask})">Comment</button>`;
+
+
+
+        // Append elements to the card
+        taskCard.appendChild(title);
+        taskCard.appendChild(description);
+        taskCard.appendChild(instruction);
+        taskCard.appendChild(stage);
+        taskCard.appendChild(duration);
+        taskCard.appendChild(deliveryMode);
+        taskCard.appendChild(socialOrganization);
+        taskCard.appendChild(groupSize);
+        taskCard.appendChild(feedback);
+        taskCard.appendChild(elearingTool);
+        taskCard.appendChild(resource);
+        taskCard.appendChild(tags);
+        taskCard.appendChild(comment);
+
+        // Append card to the container
+        taskContainer.appendChild(taskCard);
+      });
+    }
+	
+	function commentHandler(comment_type,data)
+	{
+	//console.log(data);
+
+		if (comment_type=="CC"){
+		
+			var id=data.ID;
+			var name=data.NAME;
+			var dp=data.Tag_DP;
+			var dp_steps=data.Tag_DP_Steps.join(';');
+			var pa_foci=data.Tag_P_Foci.join(';');
+			var username=document.getElementById("username").value;
+		
+			
+			// Construct URL with proper encoding
+			var baseUrl = 'https://hku.au1.qualtrics.com/jfe/form/SV_2bJ9dwWPhsPmQB0';
+			var params = new URLSearchParams({
+				'CC_ID': id,
+				'CC_Name': name,
+				'CC_DP': dp,
+				'CC_DP_Steps': dp_steps,
+				'CC_PA_Foci': pa_foci,
+				'username': username
+			});
+
+			var url = baseUrl + '?' + params.toString();
+	
+			
+			window.open(url, '_blank');
+
+		}
+		else if (comment_type=="Task"){
+		
+			var id = data.ID;
+			var name = data.Name;
+			var type = data.Tag_Task_Type; // Ensure `Tag_Task_Type` exists and is an array
+			var description = data.Description;
+			var instruction = data.Instruction;
+			var duration = data.Duration;
+			var elearn = data.Elearning_Tool;
+			
+			//console.log("elearn",elearn);
+						
+			// Check if the property exists
+			var feedback = data["Feedback"] ? data["Feedback"].join(';') : ''; // Check if the property exists
+			var groupSize = data["Group Size"];
+			var resource = data.Resource.join(';'); // Check if the property exists
+			var socialOrganization = data["Social Organization"];
+			var deliveryMode = data["Delivery mode"];
+			var stage = data.Stage;
+			var username = document.getElementById("username").value; // Ensure the element exists
+
+
+			// Construct URL with proper encoding
+			var baseUrl = 'https://hku.au1.qualtrics.com/jfe/form/SV_cZPNU8VilCszc4S';
+			var params = new URLSearchParams({
+				'Task_ID': id,
+				'Task_Name': name,
+				'Task_Type': type,
+				'Task_Description': description,
+				'Task_Instruction': instruction,
+				'Task_Stage': stage,
+				'Task_Duration': duration,
+				'Task_Delivery_Mode': deliveryMode,
+				'Task_Social_Organization': socialOrganization,
+				'Task_Group_Size': groupSize,
+				'Task_Feedback': feedback,
+				'Task_Elearning_Tool': elearn,
+				'Task_Resource': resource,
+				'username': username
+			});
+
+//console.log(params);
+
+			var url = baseUrl + '?' + params.toString();
+		
+			window.open(url, '_blank');
+		
+		
+		}
+	}
+
+
+    // Initial render
+    document.addEventListener("DOMContentLoaded", () => {
+      renderCCPatterns(ccData);
+    });
+	
+
+
+
+  </script>
+</body>
+</html>
